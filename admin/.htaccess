@@ -1,0 +1,24 @@
+<Files .htaccess>
+order allow,deny
+deny from all
+</Files>
+
+<Files candidates.json>
+Order allow,deny
+Deny from All
+</Files>
+
+<Files data.json>
+Order allow,deny
+Deny from All
+</Files>
+
+<Files voters.json>
+Order allow,deny
+Deny from All
+</Files>
+
+<Files votes.json>
+Order allow,deny
+Deny from All
+</Files>

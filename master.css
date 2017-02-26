@@ -1,0 +1,69 @@
+﻿body
+{
+    margin: 0px;
+    background: url("images/background.png") repeat;
+    font-family: Arial;
+    font-size: 10pt;
+}
+
+#main
+{
+    margin: 25px 0px 0px 25px;
+    background: transparent;
+    width: 800px;
+}
+
+#top
+{
+    height: 50px;
+    background: transparent url("images/top.png") no-repeat;
+}
+
+#middle
+{
+    background: transparent url("images/middle.png") repeat-y;
+    padding: 20px 10px 0px 10px;
+}
+
+#bottom
+{
+    height: 50px;
+    background: transparent url("images/bottom.png") no-repeat;  
+}
+
+h1
+{
+    font-family: Calibri;
+    font-size: 28pt;
+    text-align: center;
+}
+
+.fieldset
+{
+	border: 1px solid #999999;
+	padding: 0px 5px 5px 5px;
+	margin-bottom: 15px;
+}
+
+.fieldset .header
+{
+	position: relative;
+	top: -9px;
+	left: 15px;
+	background: #FFFFFF;
+	padding: 2px 5px;
+	font-weight: normal;
+}
+
+.fieldset .content
+{
+	margin-top: -10px;	
+	text-align: center;
+}
+
+input.text
+{
+	border: 1px solid #999999;
+}
+
+#dd { float: right; margin-right: 10px;}
