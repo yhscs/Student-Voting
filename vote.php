@@ -80,10 +80,20 @@
 		    {
 				$id = $voters[$id]['ID'];
 				
+				// Check for multiple votes for one student
+				// Can only happen if student hacks the Javascript to insert votes
+				$duplicates = array();
+				foreach($vote as $temp)
+				{
+					if (++$duplicates[$temp] > 1)
+						exit('You cannot vote for someone more than once. No hacking!');
+				}
+				
 				$query = "UPDATE `electionVoters` SET `Voted` = 1 WHERE `ID` = $id LIMIT 1";
 				mysql_query($query);
 				
 				$votes = count($vote);
+				
 				for($i=0;$i<$votes;$i++)
 				{
 					$id = $candidates[$vote[$i]]['ID'];

@@ -1,2 +1,14 @@
 
 *.xml
+
+admin/index.php
+
+admin/options.php
+
+admin/reset.php
+
+admin/results.php
+
+admin/upload.php
+
+db.php
