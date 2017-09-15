@@ -89,17 +89,26 @@
 						exit('You cannot vote for someone more than once. No hacking!');
 				}
 				
-				$query = "UPDATE `electionVoters` SET `Voted` = 1 WHERE `ID` = $id LIMIT 1";
-				mysql_query($query);
-				
 				$votes = count($vote);
 				
-				for($i=0;$i<$votes;$i++)
+				$totalVotes = 0;
+				for ($class = 0; $class < 8; $class++)
+					$totalVotes += $data['count'][$class];
+				
+				if ($votes <= $totalVotes)
 				{
-					$id = $candidates[$vote[$i]]['ID'];
-					$query = "UPDATE `electionVoters` SET `Votes` = `Votes` + 1 WHERE `ID` = $id LIMIT 1";
+					$query = "UPDATE `electionVoters` SET `Voted` = 1 WHERE `ID` = $id LIMIT 1";
 					mysql_query($query);
+					
+					for($i=0;$i<$votes;$i++)
+					{
+						$id = $candidates[$vote[$i]]['ID'];
+						$query = "UPDATE `electionVoters` SET `Votes` = `Votes` + 1 WHERE `ID` = $id LIMIT 1";
+						mysql_query($query);
+					}
 				}
+				else
+					exit('You voted for too many people.');
 				
 				echo 'success';
 		    }
