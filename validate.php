@@ -1,51 +1,66 @@
 <?php
 	require_once('db.php');
-	$query = 'SELECT * FROM `electionVoters` WHERE `Candidate` = 1 ORDER BY `First Name`';
-	$result = mysql_query($query);
-	$count = mysql_num_rows($result);
-	
-	for ($i=0;$i<$count;$i++)
-	{
-		$key = sha1(mysql_result($result, $i, 'ID'));
-		$class = mysql_result($result, $i, 'Grade');
-		$gender = mysql_result($result, $i, 'Gender');
-		$name = mysql_result($result, $i, 'First Name').' '.mysql_result($result, $i, 'Last Name');
-		
-		$candidates[$key] = array('class'=>$class,'gender'=>$gender,'name'=>$name,'hash'=>$key);
-	}
-	
-	$query = 'SELECT * FROM `electionVoters`';
-	$result = mysql_query($query);
-	$count = mysql_num_rows($result);
+	$query = "SELECT * FROM `electionVoters` WHERE `Candidate` = 1 ORDER BY `First Name`";
+	$stmt = $votersDB->prepare($query);
+	$stmt->execute();
+	$count = $stmt->rowCount();
+	$result = $stmt->fetchAll();
 
 	for ($i=0;$i<$count;$i++)
 	{
-		$key = sha1(mysql_result($result, $i, 'ID'));
-		$class = mysql_result($result, $i, 'Grade');
-		$gender = mysql_result($result, $i, 'Gender');
-		$name = mysql_result($result, $i, 'First Name').' '.mysql_result($result, $i, 'Last Name');
-		$voted = mysql_result($result, $i, 'Voted');
-		
+		$key = sha1($result[$i]['ID']);
+		$class = $result[$i]['Grade'];
+		$gender = $result[$i]['Gender'];
+		$name = $result[$i]['First Name'].' '.$result[$i]['Last Name'];
+
+		$candidates[$key] = array('class'=>$class,'gender'=>$gender,'name'=>$name,'hash'=>$key);
+	}
+	
+	$query = "SELECT * FROM `electionVoters`";
+	$stmt = $votersDB->prepare($query);
+	$stmt->execute();
+	$count = $stmt->rowCount();
+	$result = $stmt->fetchAll();
+
+	for ($i=0;$i<$count;$i++)
+	{
+		$key = sha1($result[$i]['ID']);
+		$class = $result[$i]['Grade'];
+		$gender = $result[$i]['Gender'];
+		$name = $result[$i]['First Name'].' '.$result[$i]['Last Name'];
+		$voted = $result[$i]['Voted'];
+
 		$voters[$key] = array('class'=>$class,'gender'=>$gender,'name'=>$name,'voted'=>$voted,'hash'=>$key);
 	}
 	
-	$query = 'SELECT * FROM `election` LIMIT 1';
-	$result = mysql_query($query);
+	$query = "SELECT * FROM `election` LIMIT 1";
+	$stmt = $votersDB->prepare($query);
+	$stmt->execute();
+	$result = $stmt->fetch();
 	
-	$data['count'][0] = mysql_result($result, 0, '9thGirls');
-	$data['count'][1] = mysql_result($result, 0, '9thBoys');
-	$data['count'][2] = mysql_result($result, 0, '10thGirls');
-	$data['count'][3] = mysql_result($result, 0, '10thBoys');
-	$data['count'][4] = mysql_result($result, 0, '11thGirls');
-	$data['count'][5] = mysql_result($result, 0, '11thBoys');
-	$data['count'][6] = mysql_result($result, 0, '12thGirls');
-	$data['count'][7] = mysql_result($result, 0, '12thBoys');
+	$data['count'][0] = $result['9thGirls'];
+	$data['count'][1] = $result['9thBoys'];
+	$data['count'][2] = $result['10thGirls'];
+	$data['count'][3] = $result['10thBoys'];
+	$data['count'][4] = $result['11thGirls'];
+	$data['count'][5] = $result['11thBoys'];
+	$data['count'][6] = $result['12thGirls'];
+	$data['count'][7] = $result['12thBoys'];
 	
-	$name = strtolower($_GET["name"]);
+	$pass = $_GET["pass"];
 	$id = $_GET["id"];
 	if ($voters[$id])
 	{
-		if (strtolower($voters[$id]["name"]) == $name)
+		
+		// Make sure password is correct and account has been verified
+		$query = "SELECT `Verified`, `Hash` FROM `User` WHERE SHA1(`StudentID`) = :id";
+		$query_params = array(':id' => $id);
+		$stmt = $db->prepare($query);
+		$stmt->execute($query_params);
+		$count = $stmt->rowCount();
+		$result = $stmt->fetch();
+
+		if ($count > 0 && $result['Verified'] == 1 && password_verify($pass, $result['Hash']) == 1)
 		{
 		    if ($voters[$id]['voted'] != 1)
 		    {
@@ -66,7 +81,6 @@
 		    $votes = 5;
 		    
 		    $names = array("Freshmen Girls", "Freshmen Boys", "Sophomore Girls", "Sophomore Boys", "Junior Girls", "Junior Boys", "Senior Girls", "Senior Boys");
-		    
 		    foreach ($candidates as $key => $value)
 		    {
 		        array_push($array[((intval($value["class"]) - 1) % 4) * 2 + (($value["gender"] == "M") ? 1 : 0)], array("hash" => $key, "name" => $value["name"]));
@@ -138,7 +152,7 @@
 				echo 'You have already voted.';
 		}
 		else
-			echo 'Make sure your name and ID are correct.';
+			echo 'Make sure your ID and password are correct. You may also need to verify your account. Check your email for details.';
 	}
 	else
 		echo 'Your ID number was not recognized.';

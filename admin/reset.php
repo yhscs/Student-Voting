@@ -3,7 +3,7 @@
 	
 	if (isset($_SESSION["last"]) && (time() - $_SESSION["last"]) <= 600)
 	{
-		if (isset($_SESSION["password"]) && $_SESSION["password"] == "SHA1HASH")
+		if (isset($_SESSION["password"]) && $_SESSION["password"] == "HASHED_PASSWORD")
 		{
 			$_SESSION["last"] = time();
 

@@ -3,7 +3,7 @@
 	
 	if (isset($_SESSION["last"]) && (time() - $_SESSION["last"]) <= 600)
 	{
-		if (isset($_SESSION["password"]) && $_SESSION["password"] == "SHA1HASH")
+		if (isset($_SESSION["password"]) && $_SESSION["password"] == "HASHED_PASSWORD")
 		{
 			$_SESSION["last"] = time();
 
@@ -16,16 +16,19 @@
 			$b11 = $_POST['b11'];
 			$g12 = $_POST['g12'];
 			$b12 = $_POST['b12'];
+			$voting = $_POST['voting'];
 
 			require_once('../db.php');
-	
-			$query = "UPDATE `election` SET `Title` = '$title', `9thGirls` = $g9, `9thBoys` = $b9, `10thGirls` = $g10, `10thBoys` = $b10, `11thGirls` = $g11, `11thBoys` = $b11, `12thGirls` = $g12, `12thBoys` = $b12 WHERE `Title` = `Title` LIMIT 1";
-			mysql_query($query);
-			echo 'Options Saved.';
+			
+			$query = "UPDATE `election` SET `Active` = ?, `Title` = ?, `9thGirls` = ?, `9thBoys` = ?, `10thGirls` = ?, `10thBoys` = ?, `11thGirls` = ?, `11thBoys` = ?, `12thGirls` = ?, `12thBoys` = ? LIMIT 1";
+			$stmt = $votersDB->prepare($query);
+			$query_params = array($voting, $title, $g9, $b9, $g10, $b10, $g11, $b11, $g12, $b12);
+			$stmt->execute($query_params);
+			exit('Options Saved.');
 		}
 		else
-			echo 'Invalid password, please login.';
+			exit('Invalid password, please login.');
 	}
 	else
-		echo 'Your session has expired, please login.';
+		exit('Your session has expired, please login again.');
 ?>

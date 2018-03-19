@@ -1,4 +1,9 @@
 <?php
+	
+	/* This file is no longer in use
+	 It was previously used to upload a CSV file of candidates and voters
+	 Candidates and voters are now stored in a MySQL database
+
 	session_start();
 	
 	function __sort($a, $b)
@@ -8,7 +13,7 @@
 	
 	if (isset($_SESSION["last"]) && (time() - $_SESSION["last"]) <= 600)
 	{
-		if (isset($_SESSION["password"]) && $_SESSION["password"] == "SHA1HASH")
+		if (isset($_SESSION["password"]) && $_SESSION["password"] == "HASHED_PASSWORD")
 		{
 			$_SESSION["last"] = time();
 
@@ -77,4 +82,5 @@
 	{
 		header("location:index.php?text=Your%20session%20has%20expired,%20please%20login%20and%20try%20again");
 	}
+	*/
 ?>

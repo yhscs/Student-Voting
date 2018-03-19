@@ -3,18 +3,21 @@
     
 	require_once('../db.php');
 	
-	$query = 'SELECT * FROM `election` LIMIT 1';
-	$result = mysql_query($query);
-	
-	$data['title'] = mysql_result($result, 0, 'Title');
-	$data['count'][0] = mysql_result($result, 0, '9thGirls');
-	$data['count'][1] = mysql_result($result, 0, '9thBoys');
-	$data['count'][2] = mysql_result($result, 0, '10thGirls');
-	$data['count'][3] = mysql_result($result, 0, '10thBoys');
-	$data['count'][4] = mysql_result($result, 0, '11thGirls');
-	$data['count'][5] = mysql_result($result, 0, '11thBoys');
-	$data['count'][6] = mysql_result($result, 0, '12thGirls');
-	$data['count'][7] = mysql_result($result, 0, '12thBoys');
+	$query = "SELECT * FROM `election` LIMIT 1";
+	$stmt = $votersDB->prepare($query);
+	$stmt->execute();
+	$result = $stmt->fetch();
+
+	$data['title'] = $result['Title'];
+	$data['count'][0] = $result['9thGirls'];
+	$data['count'][1] = $result['9thBoys'];
+	$data['count'][2] = $result['10thGirls'];
+	$data['count'][3] = $result['10thBoys'];
+	$data['count'][4] = $result['11thGirls'];
+	$data['count'][5] = $result['11thBoys'];
+	$data['count'][6] = $result['12thGirls'];
+	$data['count'][7] = $result['12thBoys'];
+	$data['active'] = $result['Active'];
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -28,7 +31,9 @@
         <script type="text/javascript" src="../../jquery.js"></script>
         <script type="text/javascript">
         	$(function() {
-        		img = new Image();
+        		var candidates = false;
+				
+				img = new Image();
         		img.src="../images/uploading.gif";
         		$("#password").each(function(){this.focus();});
                 $("#login").click(function() {
@@ -45,14 +50,6 @@
                 {
                 	$(this).parent().parent().append("<div><img src='../images/uploading.gif' alt='' title='' /></div>");
                 });
-                $("#reset").click(function() {
-                	if (confirm("Are you sure you want to reset the voting?\nThis will erase all previous voting results."))
-	        			$.get("reset.php", {}, function(data) {
-	        				alert(data);
-	        				if (data != "Voting Reset.")
-	        					location.href = "index.php";
-	        			});
-        		});
         		$("#save").click(function(){
 					var myTitle = $("#title").val();
 					var g9 = $("#0").val();
@@ -63,12 +60,43 @@
 					var b11 = $("#5").val();
 					var g12 = $("#6").val();
 					var b12 = $("#7").val();
-					$.post("options.php", {myTitle: myTitle, g9: g9, b9: b9, g10: g10, b10: b10, g11: g11, b11: b11, g12: g12, b12: b12}, function(data){
+					var b12 = $("#7").val();
+					var voting = $('input[name=vote]:checked').val();
+					$.post("options.php", {myTitle: myTitle, g9: g9, b9: b9, g10: g10, b10: b10, g11: g11, b11: b11, g12: g12, b12: b12, voting: voting}, function(data){
         				alert(data);
         				if (data != "Options Saved.")
         					location.href = "index.php";
         			});
         		});
+				
+				$("#selectCandidates").click(function(){
+					if (candidates == false)
+					{
+						candidates = true;
+						$('.content p').hide();
+						$('.content p').html('<span style="color:red; font-weight:bold">Changing the candidates will DELETE all current results and candidates. Click the Delete Candidates button below to finalize your decision.</span>');
+						$('.content p').fadeIn();
+						$('#selectCandidates').val('Delete Candidates');
+					}
+					else
+					{
+						var classes = '';
+						$('input:checked').each(function() {
+							classes += $(this).val()+',';
+						});
+						
+						if (classes == '')
+							alert('You must select at least one class as candidates to continue.');
+						else
+						{
+							$.post("candidates.php", { "candidates": classes }, function(data) {
+        						candidates = false;
+								classes = '';
+								alert(data);
+        					});
+        				}	
+					}
+				});
             });
         </script>
         <style type="text/css">
@@ -90,7 +118,7 @@
 					}
 					$_SESSION["last"] = time();
 				
-					if (isset($_SESSION["password"]) && $_SESSION["password"] == "SHA1HASH")
+					if (isset($_SESSION["password"]) && $_SESSION["password"] == "HASHED_PASSWORD")
 					{
 
 				?>
@@ -103,18 +131,6 @@
 				<div style="margin: 10px 0px 10px 0px; color: #FF0000; padding: 3px; border-top: 1px dashed #FF0000; border-bottom: 1px dashed #FF0000;" id="alert"><?php echo $_GET["text"]; ?></div>
 				<?php
 					}
-				?>
-				<!--
-				<div class="fieldset">
-					<span class="header">Voting Population</span>
-					<div class="content">
-						<form action="upload.php" method="post" enctype="multipart/form-data" id="voters">
-							<div><input type="hidden" name="type" value="voters" /><input type="file" name="file" /><input type="submit" name="submit" value="Upload" /></div>
-						</form>
-					</div>
-				</div>
-			    -->
-			    <?php
 					if ($type == "candidates")
 					{
 				?>
@@ -122,32 +138,25 @@
 				<?php
 					}
 				?>
-<!--
+
 				<div class="fieldset">
-               
 					<span class="header">Candidates</span>
-					<div class="content">
-						<form action="upload.php" method="post" enctype="multipart/form-data" id="candidates">
-							<div><input type="hidden" name="type" value="candidates" /><input type="file" name="file" /><input type="submit" name="submit" value="Upload" /></div>
+					<div class="content" style="text-align:left;">
+                    	<p>Selecting candidates below will <span style="color: red; font-weight: bold;">erase all current candidates and results</span>. Please make sure you have looked at the current results before submitting your choices below.</p>
+						<form action="javascript:void(0);" id="candidates">
+							<label><input type="checkbox" id="freshman" value="9">Freshman</label><br>
+                            <label><input type="checkbox" id="sophomores" value="10">Sophomores</label><br>
+                            <label><input type="checkbox" id="juniors" value="11">Juniors</label><br>
+                            <label><input type="checkbox" id="seniors" value="12">Seniors</label><br>
+                            <input type="button" id="selectCandidates" value="Select Candidates">
 						</form>
 					</div>
                  
 				</div>
-
-
-				<div class="fieldset">
-					
-                    <span class="header">Reset Voting</span>
-					<div class="content">
-						<input type="button" value="Reset" id="reset" />
-					</div>
-                   
-				</div>
-				 -->
 				<div class="fieldset">
 					<span class="header">Options</span>
 					<div class="content" style="text-align: left;">
-                    <br/><div>Title: <input type="text" size="50" maxlength="255" value="<?php echo $data["title"]; ?>" id="title" /></div>	
+                    <br><div>Title: <input type="text" size="50" maxlength="255" value="<?php echo $data["title"]; ?>" id="title" /></div>	
 						<div>9th Girls Vote for Max: <input type="text" value="<?php echo $data["count"][0]; ?>" id="0" style="width: 30px;"/></div>
 						<div>9th Boys Vote for Max: <input type="text" value="<?php echo $data["count"][1]; ?>" id="1" style="width: 30px;" /></div>
 						<div>10th Girls Vote for Max: <input type="text" value="<?php echo $data["count"][2]; ?>" id="2" style="width: 30px;" /></div>
@@ -158,8 +167,17 @@
 						<div>12th Boys Vote for Max: <input type="text" value="<?php echo $data["count"][7]; ?>" id="7" style="width: 30px;"/></div>	
 						
 						
-						<br/>
-						<div><input value="Save" id="save" type="button" /></div>		
+						<br>
+                        
+                        <?php
+						if ($data['active'] == 0)
+                        	echo '<input type=radio name=vote value=1>Voting On<br><input type=radio name=vote value=0 checked>Voting Off<br>';
+						else
+							echo '<input type=radio name=vote value=1 checked>Voting On<br><input type=radio name=vote value=0>Voting Off<br>';
+						
+						?>
+                        
+						<div><input value="Save" id="save" type="button"></div>		
 					</div>
 				</div>
 				
@@ -173,7 +191,7 @@
                 <div class="fieldset">
 					<span class="header">Logout</span>
 					<div class="content">
-						<div style="margin-top: 5px;"><input type="button" value="Logout" id="logout" /></div>
+						<div style="margin-top: 5px;"><input type="button" value="Logout" id="logout"></div>
 					</div>
 				</div>
 
@@ -188,8 +206,8 @@
 			    <div class="fieldset" style="width: 40%; margin: 0px auto;">
 					<span class="header">Login</span>
 					<div class="content">
-						<div>Password: <input type="password" id="password" onkeyup="if (event.keyCode == 13){$('#login').click();}" /></div>
-						<div style="margin-top: 5px;"><input type="button" value="Login" id="login" /></div>
+						<div id="adminPass">Password: <input type="password" id="password" onkeyup="if (event.keyCode == 13){$('#login').click();}"><br><br />
+						<input type="button" value="Login" id="login"></div>
 					</div>
 				</div>
 				

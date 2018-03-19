@@ -1,11 +1,13 @@
 <?php 
 	require_once('db.php');
 	
-	$query = 'SELECT * FROM `election` LIMIT 1';
-	$result = mysql_query($query);
+	$query = "SELECT * FROM `election` LIMIT 1";
+	$stmt = $votersDB->prepare($query);
+	$stmt->execute();
+	$result = $stmt->fetch();
 	
-	$data['title'] = mysql_result($result, 0, 'Title');
-	$active = mysql_result($result, 0, 'Active');
+	$data['title'] = $result['Title'];
+	$active = $result['Active'];
 ?>
 
 <!DOCTYPE html>
@@ -21,7 +23,7 @@
 			{
 		?>
 		<script type="text/javascript" src="hash.js"></script>
-        <script type="text/javascript" src="../jquery.js"></script> 
+        <script type="text/javascript" src="jquery.js"></script> 
 		<script type="text/javascript" src="fix.js"></script> 
 		<script type="text/javascript">
         	$(function() {
@@ -37,7 +39,7 @@
         		$("#login").click(function() {
         			this.disabled = true;
         			
-        			$.get("validate.php", { "name": $("#name").val(), "id": sha1($("#id").val()) }, function(data) {
+        			$.get("validate.php", { "pass": $("#pass").val(), "id": sha1($("#id").val()) }, function(data) {
         				if (data.charAt(0) == "<") {
         					$("#identification").slideUp(2000, function() {
         						$("#vote").append(data).slideDown(2000);
@@ -68,11 +70,11 @@
 					votes.push($(this).val());
 				});
 
-				$.post("vote.php", { "name": $("#name").val(), "id": sha1($("#id").val()), "vote": JSON.stringify(votes) }, function(data) {
+				$.post("vote.php", { "pass": $("#pass").val(), "id": sha1($("#id").val()), "vote": JSON.stringify(votes) }, function(data) {
 					if (data == "success")
 					{
 						alert("Your vote has been recorded. Thanks for voting!");
-						location.reload();
+						//location.reload();
 					}
 					else
 						alert(data);
@@ -101,9 +103,9 @@
                 <div class="fieldset" id="identification">
                     <span class="header">Identification</span>
                     <div class="content">
-						<div style="margin-bottom: 5px;"><div style="float:left; width: 42%; text-align: right;">Name:</div><div style="float:left;">&nbsp;<input type="text" class="text" id="name" style="width: 150px;" /></div><div style="clear:both;"></div></div>
-						<div style="margin-bottom: 5px;"><div style="float:left; width: 42%; text-align: right;">ID:</div><div style="float:left;">&nbsp;<input type="password" maxlength="7" class="text" id="id" style="width: 150px;" /></div><div style="clear:both;"></div></div>
-						<div><input type="button" value="Login" id="login" /></div>
+						<div style="margin-bottom: 5px;"><div style="float:left; width: 42%; text-align: right;">ID:</div><div style="float:left;">&nbsp;<input type="text" maxlength="11" class="text" id="id" style="width: 150px;" autocomplete="off"></div><div style="clear:both;"></div></div>
+                        <div style="margin-bottom: 5px;"><div style="float:left; width: 42%; text-align: right;">Password:</div><div style="float:left;">&nbsp;<input type="password" class="text" id="pass" style="width: 150px;" /></div></div>
+                        <div><input type="button" value="Login" id="login"></div>
                     </div>
                 </div>
                 
@@ -115,10 +117,14 @@
 						echo '<p>Voting is closed.</p>';
 				?>
                 
-                <div>&nbsp;</div>
+                <div id="registerAccount">
+                	<h2>You need a YHSCS account to vote.</h2>
+                    <a href="http://yhscs.us/users/register.php">Register</a><br>
+                    <a href="http://yhscs.us/users/forgotPassword.php">Forgot Password</a>
+                </div>
                 
             </div>
-            <div id="bottom"><span id="dd">Designed and Developed by Micah Hahn, Class of 2011</span></div>
+            <div id="bottom"><span id="dd">Designed and Developed in <a href="http://yhscs.us/web/developers.php">Web Design II</a> by Micah Hahn, Class of 2011</span><br><span id="dd">Security Analysis in <a href="http://yhscs.us/advanced/computerSecurity.php">Computer Security</a> by Sydney Anderson, Class of 2017</span></div>
         </div>
     </body>
 </html>

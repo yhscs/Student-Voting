@@ -67,3 +67,38 @@ input.text
 }
 
 #dd { float: right; margin-right: 10px;}
+
+#login {
+	display:inline-block;
+    color:#444;
+    border:1px solid #CCC;
+    background:#DDD;
+    box-shadow: 0 0 5px -1px rgba(0,0,0,0.2);
+    cursor:pointer;
+    vertical-align:middle;
+	width: 250px;
+	height: 50px;
+    padding: 5px;
+    text-align: center;
+	margin-top: -25px;
+	font-size: 24px;
+	-webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+	-khtml-user-select: none; /* Konqueror HTML */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* Internet Explorer/Edge */
+	user-select: none; 
+}
+
+#adminPass {
+	font-size: 24px;	
+}
+
+#registerAccount {
+	 background:#DDD;
+	 text-align: center;
+	 width: 75%;
+	 margin-left: auto;
+	 margin-right: auto;
+	 padding-bottom: 10px;
+}
